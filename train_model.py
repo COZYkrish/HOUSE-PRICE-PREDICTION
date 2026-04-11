@@ -73,7 +73,7 @@ for i,(f,v) in enumerate(fi.head(10).items(),1):
 
 # STEP 8: Save Model
 MODEL_FILE = "house_price_model.pkl"
-joblib.dump(rf_model, MODEL_FILE)
+joblib.dump(rf_model, MODEL_FILE, compress=3)
 print(f"\n💾 Model saved to '{MODEL_FILE}'")
 
 # STEP 9: Sample Prediction
