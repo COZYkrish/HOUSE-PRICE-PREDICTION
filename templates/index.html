@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🏠 House Price Predictor · India</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🏠</span>
+        <div>
+          <h1>House Price Predictor</h1>
+          <p>India Real Estate · Random Forest AI</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge green">🌳 Random Forest</span>
+        <span class="badge blue">🇮🇳 India Dataset</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="container">
+
+    <!-- Stats strip -->
+    <div class="stats-strip">
+      <div class="stat"><span class="stat-icon">🌳</span><div><div class="stat-val">100</div><div class="stat-lbl">Decision Trees</div></div></div>
+      <div class="stat"><span class="stat-icon">📊</span><div><div class="stat-val">20</div><div class="stat-lbl">Features Used</div></div></div>
+      <div class="stat"><span class="stat-icon">🏙️</span><div><div class="stat-val">30+</div><div class="stat-lbl">Cities Covered</div></div></div>
+      <div class="stat"><span class="stat-icon">⚡</span><div><div class="stat-val">Live</div><div class="stat-lbl">Predictions</div></div></div>
+    </div>
+
+    <!-- FORM CARD -->
+    <div class="card">
+      <div class="card-header">
+        <h2>🏡 Enter House Details</h2>
+        <p>Fill in the details below to get an AI-powered price estimate</p>
+      </div>
+
+      <div class="form-body">
+
+        <!-- SECTION: Basic -->
+        <div class="section-label">🛏️ Basic Information</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Bedrooms</label>
+            <input type="number" id="bedrooms" min="1" max="10" value="3" placeholder="e.g. 3" />
+          </div>
+          <div class="field">
+            <label>Bathrooms</label>
+            <input type="number" id="bathrooms" min="1" max="10" step="0.25" value="2" placeholder="e.g. 2" />
+          </div>
+          <div class="field">
+            <label>Floors</label>
+            <input type="number" id="floors" min="1" max="5" step="0.5" value="1" placeholder="e.g. 1" />
+          </div>
+          <div class="field">
+            <label>Grade <span class="hint">(1–13)</span></label>
+            <input type="number" id="grade" min="1" max="13" value="7" placeholder="e.g. 7" />
+          </div>
+          <div class="field">
+            <label>Condition <span class="hint">(1–5)</span></label>
+            <input type="number" id="condition" min="1" max="5" value="3" placeholder="e.g. 3" />
+          </div>
+          <div class="field">
+            <label>Waterfront</label>
+            <select id="waterfront">
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Views <span class="hint">(0–4)</span></label>
+            <input type="number" id="views" min="0" max="4" value="0" placeholder="e.g. 0" />
+          </div>
+        </div>
+
+        <!-- SECTION: Area -->
+        <div class="section-label">📐 Area Details <span class="hint">(sq ft)</span></div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Living Area</label>
+            <input type="number" id="living_area" min="100" value="1500" placeholder="e.g. 1500" />
+          </div>
+          <div class="field">
+            <label>Lot Area</label>
+            <input type="number" id="lot_area" min="100" value="5000" placeholder="e.g. 5000" />
+          </div>
+          <div class="field">
+            <label>Area excl. Basement</label>
+            <input type="number" id="area_excl_basement" min="0" value="1200" placeholder="e.g. 1200" />
+          </div>
+          <div class="field">
+            <label>Basement Area</label>
+            <input type="number" id="basement_area" min="0" value="300" placeholder="e.g. 300" />
+          </div>
+          <div class="field">
+            <label>Living Area (Renovated)</label>
+            <input type="number" id="living_area_renov" min="0" value="1600" placeholder="e.g. 1600" />
+          </div>
+          <div class="field">
+            <label>Lot Area (Renovated)</label>
+            <input type="number" id="lot_area_renov" min="0" value="5000" placeholder="e.g. 5000" />
+          </div>
+        </div>
+
+        <!-- SECTION: Year -->
+        <div class="section-label">📅 Year Details</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Built Year</label>
+            <input type="number" id="built_year" min="1900" max="2024" value="2000" placeholder="e.g. 2000" />
+          </div>
+          <div class="field">
+            <label>Renovation Year <span class="hint">(0 if none)</span></label>
+            <input type="number" id="renovation_year" min="0" max="2024" value="0" placeholder="0 if none" />
+          </div>
+        </div>
+
+        <!-- SECTION: Location (City Dropdown) -->
+        <div class="section-label">📍 Location</div>
+        <div class="form-grid">
+          <div class="field field-wide">
+            <label>City / Area</label>
+            <select id="city_select" onchange="fillCityData(this.value)">
+              <option value="">— Select a city —</option>
+              {% for city in cities %}
+              <option value="{{ city }}">{{ city }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label>Schools Nearby</label>
+            <input type="number" id="schools_nearby" min="0" value="3" placeholder="e.g. 3" />
+          </div>
+          <div class="field">
+            <label>Distance from Airport <span class="hint">(km)</span></label>
+            <input type="number" id="airport_distance" min="0" value="15" placeholder="e.g. 15" />
+          </div>
+        </div>
+
+        <!-- Hidden location fields (auto-filled) -->
+        <input type="hidden" id="postal_code" value="122001" />
+        <input type="hidden" id="latitude"    value="28.4595" />
+        <input type="hidden" id="longitude"   value="77.0266" />
+
+        <!-- City info pill -->
+        <div class="city-pill" id="cityPill" style="display:none;">
+          <span>📌</span>
+          <span id="cityPillText"></span>
+        </div>
+
+      </div><!-- /form-body -->
+
+      <!-- Buttons -->
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="resetForm()">🔄 Reset</button>
+        <button class="btn btn-primary" id="predictBtn" onclick="predictPrice()">
+          <span id="btnText">🌳 Predict with Random Forest</span>
+        </button>
+      </div>
+    </div><!-- /card -->
+
+    <!-- RESULT -->
+    <div class="result-card" id="resultCard" style="display:none;">
+      <div class="result-glow"></div>
+      <div class="result-top">
+        <div class="result-icon">🏷️</div>
+        <div class="result-meta">
+          <div class="result-label">Estimated House Price</div>
+          <div class="result-city" id="resultCity"></div>
+        </div>
+      </div>
+      <div class="result-price" id="resultPrice">—</div>
+      <div class="result-model">🌳 Random Forest · 100 Trees · India Housing Dataset</div>
+      <button class="btn btn-ghost sm" onclick="document.getElementById('resultCard').style.display='none'">✕ Dismiss</button>
+    </div>
+
+    <!-- ERROR -->
+    <div class="error-card" id="errorCard" style="display:none;">
+      <span>⚠️</span><span id="errorMsg"></span>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div class="how-card">
+      <h3>⚙️ How It Works</h3>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><p>You enter house details and select a <strong>city/area</strong>.</p></div>
+        <div class="step"><div class="step-num">2</div><p>Flask backend receives data and passes it to the saved model.</p></div>
+        <div class="step"><div class="step-num">3</div><p><strong>Random Forest</strong> (100 decision trees) vote on the price.</p></div>
+        <div class="step"><div class="step-num">4</div><p>The averaged prediction is returned as an estimated price.</p></div>
+      </div>
+      <div class="rf-note">
+        <span>🌳</span>
+        <span><strong>Why Random Forest?</strong> It trains 100 different decision trees on random subsets of your data, then averages their predictions — reducing overfitting and typically achieving <strong>15–30% better accuracy</strong> than a single Linear Regression model.</span>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <p>🏠 House Price Predictor · Flask + scikit-learn · Random Forest · India Dataset</p>
+  </footer>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
