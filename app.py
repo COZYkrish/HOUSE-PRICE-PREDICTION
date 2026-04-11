@@ -3,19 +3,40 @@
 # ============================================================
 
 import os
-import joblib
-import numpy as np
+import traceback
+
+# joblib and numpy imports have been moved inside functions
 from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
 
-MODEL_PATH = "house_price_model.pkl"
-if os.path.exists(MODEL_PATH):
-    model = joblib.load(MODEL_PATH)
-    print("✅ Random Forest model loaded!")
-else:
-    model = None
-    print("⚠️  Model not found. Run train_model.py first.")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "house_price_model.pkl")
+
+# Global variables to hold state
+model = None
+init_error = None
+
+def get_model():
+    global model, init_error
+    if init_error is not None:
+        raise Exception(f"Failed during initialization previously: {init_error}")
+    
+    if model is not None:
+        return model
+        
+    try:
+        import joblib
+        if os.path.exists(MODEL_PATH):
+            model = joblib.load(MODEL_PATH)
+            print("✅ Random Forest model loaded!")
+            return model
+        else:
+            raise FileNotFoundError(f"Model file not found at: {MODEL_PATH}")
+    except Exception as e:
+        init_error = traceback.format_exc()
+        print(f"Error loading model: {init_error}")
+        raise Exception(init_error)
 
 # City → (Postal Code, Latitude, Longitude) mapping
 CITY_MAP = {
@@ -53,6 +74,12 @@ CITY_MAP = {
 
 @app.route("/")
 def home():
+    try:
+        # Pre-load on home page visit so error is visible or it warms up
+        get_model()
+    except Exception as e:
+        return f"<h1>Initialization Error</h1><pre>{str(e)}</pre>", 500
+        
     cities = sorted(CITY_MAP.keys())
     return render_template("index.html", cities=cities)
 
@@ -65,8 +92,12 @@ def city_info(city_name):
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    if model is None:
-        return jsonify({"error": "Model not loaded. Run train_model.py first."}), 500
+    import numpy as np
+    try:
+        active_model = get_model()
+    except Exception as e:
+        return jsonify({"error": f"Model failed to load on server: {str(e)}"}), 500
+
     try:
         data = request.get_json()
         features = [
@@ -92,7 +123,7 @@ def predict():
             float(data["airport_distance"]),
         ]
         arr = np.array(features).reshape(1, -1)
-        price = model.predict(arr)[0]
+        price = active_model.predict(arr)[0]
         return jsonify({
             "predicted_price": round(float(price), 2),
             "formatted_price": f"₹ {round(float(price), 2):,.2f}"
